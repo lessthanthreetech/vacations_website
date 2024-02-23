@@ -17,33 +17,47 @@
     <script>
       document.addEventListener('DOMContentLoaded', function() {
         var calendarEl = document.getElementById('calendar');
+        var blockedDates = [
+          '2024-01-01', '2024-01-06', '2024-02-28', '2024-05-01',
+          '2024-05-02',  '2024-05-15','2024-06-30', '2024-04-10', 
+          '2024-12-03', '2024-05-01','2024-08-15', '2024-10-12', 
+          '2024-11-01', '2024-12-06','2024-12-08', '2024-12-25',
+          '2024-04-13', '2024-11-09'
+        ];
 
         var calendar = new FullCalendar.Calendar(calendarEl, {
           plugins: [ 'interaction', 'dayGrid' ],
           defaultDate: '2024-01-01',
+          firstDay: 1,
           editable: true,
           selectable: true,
           selectMirror: true,
           dayMaxEvents: true,
-          weekends: true,
+          weekends: false,
           events: JSON.parse(localStorage.getItem('vacaciones')) || [],
           select: function(arg) {
-            var title = prompt('Evento:');
-            if (title) {
-              calendar.addEvent({
-                title: title,
-                start: arg.start,
-                end: arg.end,
-                allDay: arg.allDay
-              });
-              saveVacaciones();
+            if (blockedDates.includes(arg.startStr) || arg.start.getDay() === 0 || arg.start.getDay() === 6) {
+              alert('Los fines de semana y días festivos no están disponibles para seleccionar.');
+            } else {
+              var title = prompt('Evento:');
+              if (title) {
+                calendar.addEvent({
+                  title: title,
+                  start: arg.start,
+                  end: arg.end,
+                  allDay: arg.allDay
+                });
+                saveVacaciones();
+              }
             }
             calendar.unselect();
           },
           eventClick: function(arg) {
-            if (confirm('¿Eliminar este evento?')) {
-              arg.event.remove();
-              saveVacaciones();
+            if (!blockedDates.includes(arg.event.start.toISOString().substring(0, 10))) {
+              if (confirm('¿Eliminar este evento?')) {
+                arg.event.remove();
+                saveVacaciones();
+              }
             }
           },
         });
