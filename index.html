@@ -2,14 +2,67 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Calendario de Vacaciones</title>
+    <title>Calendario de Vacaciones 2024</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/4.2.0/core/main.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/4.2.0/interaction/main.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/4.2.0/daygrid/main.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/4.2.0/core/main.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/4.2.0/daygrid/main.min.css" rel="stylesheet">
 </head>
 <body>
     <h1>Calendario de Vacaciones 2024</h1>
-    <div id="calendario"></div>
-    <script src="datos.js"></script>
-    <script src="script.js"></script>
+    <div id="calendar"></div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+          plugins: [ 'interaction', 'dayGrid' ],
+          defaultDate: '2024-01-01',
+          editable: true,
+          selectable: true,
+          selectMirror: true,
+          dayMaxEvents: true,
+          weekends: true,
+          events: JSON.parse(localStorage.getItem('vacaciones')) || [],
+          select: function(arg) {
+            var title = prompt('Evento:');
+            if (title) {
+              calendar.addEvent({
+                title: title,
+                start: arg.start,
+                end: arg.end,
+                allDay: arg.allDay
+              });
+              saveVacaciones();
+            }
+            calendar.unselect();
+          },
+          eventClick: function(arg) {
+            if (confirm('¿Eliminar este evento?')) {
+              arg.event.remove();
+              saveVacaciones();
+            }
+          },
+        });
+
+        calendar.render();
+
+        function saveVacaciones() {
+          var events = calendar.getEvents();
+          var vacaciones = events.map(function(event) {
+            return {
+              title: event.title,
+              start: event.start.toISOString(),
+              end: event.end.toISOString(),
+              allDay: event.allDay
+            };
+          });
+          localStorage.setItem('vacaciones', JSON.stringify(vacaciones));
+        }
+      });
+    </script>
 </body>
 </html>
-
